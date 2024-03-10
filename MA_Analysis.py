@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import base64, io
-from data import series_tree
-# import plotly.express as px
+from data import series_tree, jm_codes
+import plotly.express as px
 
 st.set_page_config(layout="wide")
 # Function to check if DataFrame contains all required columns
@@ -17,7 +17,9 @@ required_columns = [
     # 'Maintenance Cause', 'Job Priority'
 
 today = pd.to_datetime('today').date()
-
+jobmaster=pd.read_excel('JM.xlsx')
+jobcodes=jobmaster['Job Code'].tolist()
+# st.text(jobcodes)
 
 def check_columns(df):
     return all(col in df.columns for col in required_columns)
@@ -51,7 +53,7 @@ def main():
         # Read Excel file into DataFrame
         try:
             df = pd.read_excel(uploaded_file)
-            jobmaster=pd.read_excel('JM.xlsx')
+
         except Exception as e:
             st.error(f"Error reading Excel file: {e}")
             return
@@ -64,15 +66,14 @@ def main():
             df = df[['Triggered'] + [col for col in df.columns if col not in ['Vessel', 'Triggered']]]
             df['Last Done Date'] = pd.to_datetime(df['Last Done Date'])
             df['Next Due Date'] = pd.to_datetime(df['Next Due Date'], errors='coerce')
-            df = df[['Triggered', 'Equipment Code', 'Equipment Name', 'Job Title',
-                     'Primary Frequency', 'Last Done Date', 'Next Due Date',
-                     'Secondary Frequency', 'Last Done Hrs.', 'Next Due Hrs.',
-                     'Discipline', 'Present Reading', 'Rhrs/Days Since the Last Entry',
-                     'Remaining RHrs per Days', 'Safety Level', 'Critical to Safety',
-                     'Risk Assessment Required', 'Forms Attached', 'Procedures', 'Remarks']]
+            # df = df[['Triggered', 'Equipment Code', 'Equipment Name', 'Job Title',
+            #          'Primary Frequency', 'Last Done Date', 'Next Due Date',
+            #          'Secondary Frequency', 'Last Done Hrs.', 'Next Due Hrs.',
+            #          'Discipline', 'Present Reading', 'Rhrs/Days Since the Last Entry',
+            #          'Remaining RHrs per Days', 'Safety Level', 'Critical to Safety',
+            #          'Risk Assessment Required', 'Forms Attached', 'Procedures', 'Remarks']]
 
-            treelist = df[['Triggered', 'Equipment Code', 'Equipment Name', 'Job Title',
-                           'Primary Frequency']]
+            treelist = df[['Triggered', 'Equipment Code', 'Equipment Name', 'Job Title','Primary Frequency']]
             treelist['Series'] = treelist['Equipment Code'].str[0] # Extract the first digit
             treelist['Sub_Series'] = treelist['Equipment Code'].str[:2]
             treelist['Series_name'] = treelist['Series'].map(series_tree)
@@ -91,6 +92,17 @@ def main():
             critical_equipment_list = critical_equipment_df['Equipment Name'].unique()
             critical_jobs_df = df[(df['Safety Level'] == 'CRITICAL') & (df['Critical to Safety'] == 'YES')]
             critical_jobs_list = critical_jobs_df[['Equipment Name', 'Job Title']]
+
+            if 'Job Code' in df.columns:
+                # New code to filter dataframe based on job codes not in jm_codes
+                jobs_not_in_jobmaster = df[~df['Job Code'].isin(jm_codes)]
+                jobs_not_in_jobmaster_count=jobs_not_in_jobmaster.shape[0]
+                with st.expander(f'{jobs_not_in_jobmaster_count} Jobs not linked to Central Library'):
+                    st.dataframe(jobs_not_in_jobmaster)
+
+            else:
+                st.error("Please enable job codes and download excel")
+
             with st.expander('Raw Data'):
                 # Multiselect widget to select columns to display
                 columns_to_display = st.multiselect("Select columns to display", df.columns.tolist(),
@@ -102,33 +114,37 @@ def main():
                 series_analysis = treelist.groupby(['Series','Series_name']).size().reset_index(name='Job Count')
                 series_analysis.index += 1  # Starting row number from 1
                 # Create pie chart
-                # fig = px.pie(series_analysis, values='Job Count', names='Series_name', title='Series Job Counts')
+                fig = px.pie(series_analysis, values='Job Count', names='Series_name', title='Series Job Counts')
 
                 # Display DataFrame and pie chart in two columns
                 col1, col2 = st.columns([1, 1])
                 with col1:
                     st.dataframe(series_analysis)
                 with col2:
-                    # st.plotly_chart(fig)
+                    st.plotly_chart(fig)
 
             with st.expander('Critical Items'):
                 col1, col2 = st.columns(2)
                 with col1:
                     st.header('Critical Equipment List')
+
                     st.table(critical_equipment_list)
                 with col2:
                     st.header('Critical Jobs')
                     download_link_critical_jobs = download_excel(critical_jobs_list, 'Critical_Jobs')
                     st.markdown(download_link_critical_jobs, unsafe_allow_html=True)
                     st.dataframe(critical_jobs_list)
+
             with st.expander(f"{overdue_jobs.shape[0]} Overdue jobs"):
                 download_link_overdue_jobs = download_excel(overdue_jobs, 'Overdue_Jobs')
                 st.markdown(download_link_overdue_jobs, unsafe_allow_html=True)
                 st.dataframe(overdue_jobs, width=None)
+
             with st.expander(f"{triggered_jobs_count} Triggered jobs"):
                 download_link_triggered_jobs = download_excel(triggered_jobs, 'Triggered_Jobs')
                 st.markdown(download_link_triggered_jobs, unsafe_allow_html=True)
                 st.dataframe(triggered_jobs, width=None)
+
             with st.expander(f"{non_triggered_jobs_count} Non Triggered jobs"):
                 download_link_non_triggered_jobs = download_excel(non_triggered_jobs, 'Non_Triggered_Jobs')
                 st.markdown(download_link_non_triggered_jobs, unsafe_allow_html=True)

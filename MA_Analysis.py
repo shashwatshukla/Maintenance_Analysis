@@ -1,20 +1,21 @@
 import streamlit as st
 import pandas as pd
-import base64
-import io
-# import plotly.express as px
+import base64, io
+from data import series_tree
+import plotly.express as px
 
 st.set_page_config(layout="wide")
 # Function to check if DataFrame contains all required columns
 required_columns = [
-    'Equipment Code', 'Equipment Name', 'Job Title', 'Job Type', 'Maintenance Type',
-    'Primary Frequency', 'Last Done Date', 'Next Due Date', 'Secondary Frequency',
-    'Last Done Hrs.', 'Next Due Hrs.', 'Discipline', 'Present Reading',
-    'Rhrs/Days Since the Last Entry', 'Remaining RHrs per Days', 'Safety Level',
-    'Sub Group', 'Critical to Safety', 'Risk Assessment Required', 'Forms Attached',
-    'Procedures', 'P', 'Remarks', 'Job Assigned To', 'Class Reference',
-    'Maintenance Cause', 'Job Priority'
-]
+    'Equipment Code', 'Equipment Name', 'Job Title', 'Job Type']
+    # , 'Maintenance Type',
+    # 'Primary Frequency', 'Last Done Date', 'Next Due Date', 'Secondary Frequency',
+    # 'Last Done Hrs.', 'Next Due Hrs.', 'Discipline', 'Present Reading',
+    # 'Rhrs/Days Since the Last Entry', 'Remaining RHrs per Days', 'Safety Level',
+    # 'Sub Group', 'Critical to Safety', 'Risk Assessment Required', 'Forms Attached',
+    # 'Procedures', 'P', 'Remarks', 'Job Assigned To', 'Class Reference',
+    # 'Maintenance Cause', 'Job Priority'
+
 today = pd.to_datetime('today').date()
 
 
@@ -38,58 +39,10 @@ def download_excel(df, filename):
     return href
 
 
-series_tree = {"1": "SHIP GENERAL", "2": "HULL", "3": "EQUIPMENT FOR CARGO", "4": "SHIP EQUIPMENT",
-               "5": "EQUIPMENT FOR CREW AND PASSENGERS", "6": "MAIN MACHINERY",
-               "7": "SYSTEMS FOR MACHINERY MAIN COMPONENTS", "8": "SHIP COMMON SYSTEMS", "9": "VARIOUS ANALYSIS",
-               "21": "HULL AFT", "23": "TANKS SPACES AND STRUCTURES", "24": "SHELL PLATES TRUNKS ETC",
-               "25": "DECK HOUSES AND SUPERSTRUCTURES", "26": "HULL OUTFITTING", "27": "MATERIAL PROTECTION EXTERNAL",
-               "28": "CARGO AREA", "30": "HATCHES PORTS", "31": "EQUIPMENT FOR CARGO IN HOLDS/ON DECK",
-               "32": "SPECIAL CARGO HANDLING EQUIPMENT", "33": "DECK CRANES FOR CARGO",
-               "35": "LOADING/DISCHARGING SYSTEMS FOR LIQUID CARGO",
-               "36": "FREEZING REFRIGERATING & HEATING SYSTEMS FOR CARGO",
-               "37": "GAS/VENTILATION SYSTEMS FOR CARGO HOLDS/TANKS", "38": "AUXILIARY SYSTEMS & EQUIPMENT FOR CARGO",
-               "39": "OIL DISCHARGE MONITORING", "40": "MANOEUVRING MACHINERY & EQUIPMENT",
-               "41": "NAVIGATION & SEARCHING EQUIPMENT", "42": "COMMUNICATION EQUIPMENTS",
-               "43": "ANCHORING MOORING & TOWING EQUIPMENT",
-               "44": "REP./MAINT./CLEAN. EQUIP. WORKSHOP/STORE OUTFIT NAME PLATES",
-               "45": "LIFTING & TRANSPORT EQUIPMENT FOR MACHINERY COMPONENTS", "48": "SPECIAL EQUIPMENT",
-               "50": "LIFESAVING PROTECTION & MEDICAL EQUIPMENT",
-               "51": "INSULATION PANELS BULKHEADS DOORS SIDESCUTTLES SKYLIGHTS",
-               "54": "FURNITURE INVENTORY ENTERTAINMENT EQUIPMENT",
-               "55": "GALLEY/PANTRY EQUIP. PROVISION PLANTS LAUNDRY/IRONING EQU.",
-               "56": "TRANSPORT EQUIPMENT FOR CREW PASSENGERS & PROVISIONS",
-               "57": "VENTILATION AIR-CONDITIONING & HEATING SYSTEMS",
-               "58": "SANITARY SYST. W/DISCHARGES ACCOMMODATION DRAIN SYSTEMS", "60": "DIESEL ENGINES FOR PROPULSION",
-               "62": "OTHER TYPES OF PROPULSION MACHINERY", "63": "PROPELLERS TRANSMISSIONS FOILS",
-               "64": "BOILERS STEAM & GAS GENERATORS", "65": "MOTOR AGGREGATES FOR MAIN ELECTRIC POWER PRODUCTION",
-               "66": "OTHER AGGR. & GEN. FOR MAIN & EMERGENCY EL. POWER PRODUCTION", "70": "FUEL SYSTEMS",
-               "71": "LUBE OIL SYSTEMS", "72": "COOLING SYSTEMS", "73": "COMPRESSED AIR SYSTEMS",
-               "74": "EXHAUST SYSTEMS & AIR INTAKES", "75": "STEAM CONDENSATE & FEED WATER SYSTEMS",
-               "76": "DISTILLED & MAKE-UP WATER SYSTEMS", "79": "AUTOMATION SYSTEMS FOR MACHINERY",
-               "80": "BALLAST & BILGE SYSTEMS GUTTER PIPES OUTSIDE ACCOMMOD.",
-               "81": "FIRE & LIFEBOAT ALARM FIRE FIGHTING & WASH DOWN SYSTEMS",
-               "83": "SPECIAL COMMON HYDRAULIC OIL SYSTEMS", "85": "General Purpose Equipments",
-               "88": "COMMON ELECTRICAL SYSTEMS", "89": "LIGHTING SYSTEM", "101": "BDP", "102": "BALLAST WATER REPORTS",
-               "103": "CARGO DOUCMENTATION", "104": "CHPC – CARGO HANDLING PROCEDURES – CHEMICAL TANKERS",
-               "105": "CARGO HANDLING PROCEDURES – GAS CARRIERS", "106": "CARGO HANDLING PROCEDURES – LNG CARRIERS",
-               "107": "CARGO HANDLING PROCEDURES - PCC", "108": "CARGO HANDLING PROCEDURES - TANKERS",
-               "109": "CARGO HANDLING PROCEDURES - WCC", "110": "COVID-19 MANAGEMENT PLAN",
-               "111": "CYBER SECURITY PROCEDURES CYSM", "112": "EMERGENCY CONTINGENCY PROCEDURE",
-               "113": "ENVIRONMENTAL MANAGEMENT SYSTEM", "114": "ENGINE ROOM PROCEDURES",
-               "115": "EMERGENCY TOWING PROCEDURE MANUAL", "116": "GARBAGE MANAGEMENT PLAN",
-               "117": "ICE CLASS VESSEL PROCEDURES", "118": "INVENTORY OF HAZARDOUS MATERIAL MANAGEMENT PLAN",
-               "119": "OFFICE MANAGEMENT PROCEDURES", "120": "SHIP ENERGY EFFICIENCY MANAGEMENT PLAN",
-               "121": "SHIP MANAGEMENT PROCEDURES", "122": "SHIPBOARD MARINE POLLUTION EMERGENCY PLAN",
-               "123": "SHIPBOARD OIL POLLUTION EMERGENCY PLAN", "124": "SHIP TO SHIP TRANSFER OPERATION PLAN",
-               "125": "VESSEL GENERAL PERMIT", "126": "VOC MANAGEMENT PLAN", "900": "LO ANALYSIS", "902": "FO ANALYSIS",
-               "904": "WATER ANALYSIS", "AP": "ALL PUMPS", "CEN": "CENTRIFUGAL PUMPS", "GRP": "GEAR PUMP",
-               "PDP": "PNEUMATIC DIAPHRAGM PUMP", "PIS": "PISTON PUMPS", "SCR": "SCREW PUMPS", "VAN": "VANE PUMP"}
-
-
 # Streamlit app
 def main():
     # st.sidebar.title("Theme Selector")
-    st.title("MariApps maintenance jobs analysis")
+    st.title("Maintenance jobs analysis")
 
     # Upload Excel file
     uploaded_file = st.file_uploader("Upload Excel file", type=["xlsx", "xls"])
@@ -98,6 +51,7 @@ def main():
         # Read Excel file into DataFrame
         try:
             df = pd.read_excel(uploaded_file)
+            jobmaster=pd.read_excel('JM.xlsx')
         except Exception as e:
             st.error(f"Error reading Excel file: {e}")
             return
@@ -137,21 +91,27 @@ def main():
             critical_equipment_list = critical_equipment_df['Equipment Name'].unique()
             critical_jobs_df = df[(df['Safety Level'] == 'CRITICAL') & (df['Critical to Safety'] == 'YES')]
             critical_jobs_list = critical_jobs_df[['Equipment Name', 'Job Title']]
+            with st.expander('Raw Data'):
+                # Multiselect widget to select columns to display
+                columns_to_display = st.multiselect("Select columns to display", df.columns.tolist(),
+                                                    default=df.columns.tolist())
 
+                # Display the DataFrame with selected columns
+                st.dataframe(df[columns_to_display])
             with st.expander('Series analysis'):
                 series_analysis = treelist.groupby(['Series','Series_name']).size().reset_index(name='Job Count')
                 series_analysis.index += 1  # Starting row number from 1
                 # Create pie chart
-                # fig = px.pie(series_analysis, values='Job Count', names='Series_name', title='Series Job Counts')
+                fig = px.pie(series_analysis, values='Job Count', names='Series_name', title='Series Job Counts')
 
                 # Display DataFrame and pie chart in two columns
                 col1, col2 = st.columns([1, 1])
                 with col1:
                     st.dataframe(series_analysis)
                 with col2:
-                    # st.plotly_chart(fig)
+                    st.plotly_chart(fig)
 
-           with st.expander('Critical Items'):
+            with st.expander('Critical Items'):
                 col1, col2 = st.columns(2)
                 with col1:
                     st.header('Critical Equipment List')

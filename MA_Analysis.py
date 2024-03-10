@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import base64
 import io
-import plotly.express as px
+# import plotly.express as px
 
 st.set_page_config(layout="wide")
 # Function to check if DataFrame contains all required columns
@@ -142,14 +142,14 @@ def main():
                 series_analysis = treelist.groupby(['Series','Series_name']).size().reset_index(name='Job Count')
                 series_analysis.index += 1  # Starting row number from 1
                 # Create pie chart
-                fig = px.pie(series_analysis, values='Job Count', names='Series_name', title='Series Job Counts')
+                # fig = px.pie(series_analysis, values='Job Count', names='Series_name', title='Series Job Counts')
 
                 # Display DataFrame and pie chart in two columns
                 col1, col2 = st.columns([1, 1])
                 with col1:
                     st.dataframe(series_analysis)
                 with col2:
-                    st.plotly_chart(fig)
+                    # st.plotly_chart(fig)
 
             with st.expander('Critical Items'):
                 col1, col2 = st.columns(2)

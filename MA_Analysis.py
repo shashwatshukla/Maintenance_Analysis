@@ -115,24 +115,20 @@ def main():
                 col1, col2 = st.columns(2)
                 with col1:
                     st.header('Critical Equipment List')
-
                     st.table(critical_equipment_list)
                 with col2:
                     st.header('Critical Jobs')
                     download_link_critical_jobs = download_excel(critical_jobs_list, 'Critical_Jobs')
                     st.markdown(download_link_critical_jobs, unsafe_allow_html=True)
                     st.dataframe(critical_jobs_list)
-
             with st.expander(f"{overdue_jobs.shape[0]} Overdue jobs"):
                 download_link_overdue_jobs = download_excel(overdue_jobs, 'Overdue_Jobs')
                 st.markdown(download_link_overdue_jobs, unsafe_allow_html=True)
                 st.dataframe(overdue_jobs, width=None)
-
             with st.expander(f"{triggered_jobs_count} Triggered jobs"):
                 download_link_triggered_jobs = download_excel(triggered_jobs, 'Triggered_Jobs')
                 st.markdown(download_link_triggered_jobs, unsafe_allow_html=True)
                 st.dataframe(triggered_jobs, width=None)
-
             with st.expander(f"{non_triggered_jobs_count} Non Triggered jobs"):
                 download_link_non_triggered_jobs = download_excel(non_triggered_jobs, 'Non_Triggered_Jobs')
                 st.markdown(download_link_non_triggered_jobs, unsafe_allow_html=True)

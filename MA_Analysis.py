@@ -96,7 +96,9 @@ def main():
             if 'Job Code' in df.columns:
                 # New code to filter dataframe based on job codes not in jm_codes
                 jobs_not_in_jobmaster = df[~df['Job Code'].isin(jm_codes)]
+                jobs_not_in_jobmaster = jobs_not_in_jobmaster[~jobs_not_in_jobmaster['Equipment Code'].astype(str).str.startswith('1')]
                 jobs_not_in_jobmaster_count=jobs_not_in_jobmaster.shape[0]
+
                 with st.expander(f'{jobs_not_in_jobmaster_count} Jobs not linked to Central Library'):
                     st.dataframe(jobs_not_in_jobmaster)
 
@@ -113,21 +115,22 @@ def main():
             with st.expander('Series analysis'):
                 series_analysis = treelist.groupby(['Series','Series_name']).size().reset_index(name='Job Count')
                 series_analysis.index += 1  # Starting row number from 1
-                #Create pie chart
-                #fig = px.pie(series_analysis, values='Job Count', names='Series_name', title='Series Job Counts')
+                # Create pie chart
+                # fig = px.pie(series_analysis, values='Job Count', names='Series_name', title='Series Job Counts')
 
                 # Display DataFrame and pie chart in two columns
                 col1, col2 = st.columns([1, 1])
                 with col1:
                     st.dataframe(series_analysis)
                 with col2:
+                    pass
                     # st.plotly_chart(fig)
 
             with st.expander('Critical Items'):
                 col1, col2 = st.columns(2)
                 with col1:
                     st.header('Critical Equipment List')
-                
+
                     st.table(critical_equipment_list)
                 with col2:
                     st.header('Critical Jobs')
